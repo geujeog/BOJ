@@ -16,8 +16,6 @@ public class B1967 {
             list[i] = new ArrayList<Tuple>();
         }
 
-        boolean[] isParent = new boolean[N+1];
-
         for (int i = 1; i < N; i++) {
             StringTokenizer st = new StringTokenizer(br.readLine());
 
@@ -26,8 +24,6 @@ public class B1967 {
             int value = Integer.parseInt(st.nextToken());
 
             list[v1].add(new Tuple(v2, value));
-
-            isParent[v1] = true;
         }
 
         dp = new int[N+1];
