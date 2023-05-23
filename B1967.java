@@ -3,7 +3,7 @@ import java.io.*;
 
 public class B1967 {
     static int result;
-    static int[][] dp;
+    static int[] dp;
 
     public static void main (String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -30,9 +30,7 @@ public class B1967 {
             isParent[v1] = true;
         }
 
-        // 0행 : 자식노드 중 제일 큰 값
-        // 1행 : 자식노드 중 제일 큰 2개 합치기
-        dp = new int[N+1][2];
+        dp = new int[N+1];
 
         getLen(list, 1);
 
@@ -53,18 +51,18 @@ public class B1967 {
 
             getLen(list, i);
 
-            if (maxFirst < dp[i][0] + value) {
+            if (maxFirst < dp[i] + value) {
                 maxSecond = maxFirst;
-                maxFirst = dp[i][0] + value;
+                maxFirst = dp[i] + value;
             }
             else {
-                maxSecond = Math.max(maxSecond, dp[i][0] + value);
+                maxSecond = Math.max(maxSecond, dp[i] + value);
             }
         }
-        dp[v][0] = maxFirst;
-        dp[v][1] = maxFirst + maxSecond;
+        dp[v] = maxFirst;
 
-        result = Math.max(result, Math.max(dp[v][0], dp[v][1]));
+        // 자식 노드 중 가장 큰 값 vs 현재 노드를 기준으로 꺽인 경로
+        result = Math.max(result, Math.max(dp[v], (maxFirst + maxSecond)));
     }
 
     public static class Tuple {
