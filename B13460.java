@@ -2,10 +2,12 @@ import java.util.*;
 import java.io.*;
 
 public class B13460 {
-
+    
     static int N;
     static int M;
     static char[][] arr;
+
+    static boolean[][][][] check;
 
     public static void main (String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -17,6 +19,8 @@ public class B13460 {
         M = Integer.parseInt(st.nextToken());
 
         arr = new char[N][M];
+        check = new boolean[N][M][N][M];
+
         int redX = 0;
         int redY = 0;
         int blueX = 0;
@@ -69,11 +73,15 @@ public class B13460 {
 
             Tuple movedTuple = move(rx, ry, bx, by, direction);
 
+            if (check[movedTuple.rx][movedTuple.ry][movedTuple.bx][movedTuple.by]) continue;
+
             if (arr[movedTuple.bx][movedTuple.by] == 'O') continue;
             if (arr[movedTuple.rx][movedTuple.ry] == 'O') {
                 result = cnt;
                 break;
             }
+
+            check[movedTuple.rx][movedTuple.ry][movedTuple.bx][movedTuple.by] = true;
 
             queue.add(new Tuple(movedTuple.rx, movedTuple.ry, movedTuple.bx, movedTuple.by, cnt+1, 'l'));
             queue.add(new Tuple(movedTuple.rx, movedTuple.ry, movedTuple.bx, movedTuple.by, cnt+1, 'r'));
