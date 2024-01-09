@@ -2,44 +2,48 @@ import java.util.*;
 import java.io.*;
 
 class B1039 {
-    static int N;
-    static int K;
-    static int result;
+    static int N, M, K;
     static boolean[][] visit;
+    static int result;
 
     public static void main (String[] args) throws IOException {
-        init();
+        input();
         solution();
-        print();
+        output();
     }
 
     public static void solution() {
+        visit[N][0] = true;
         dfs(N, 0);
     }
 
     public static void dfs(int num, int cnt) {
-        if (String.valueOf(num).length() != String.valueOf(N).length()) return;
-        if (visit[num][cnt]) return;
         if (cnt == K) {
             result = Math.max(result, num);
             return;
         }
 
-        visit[num][cnt] = true;
+        for (int i = 0; i < M; i++) {
+            for (int j = i+1; j < M; j++) {
+                int pi = (int) Math.pow(10, M - i - 1);
+                int pj = (int) Math.pow(10, M - j - 1);
+                int ri = (num / pi) % 10;
+                int rj = (num / pj) % 10;
 
-        for (int i = 0; i < String.valueOf(N).length(); i++) {
-            for (int j = i+1; j < String.valueOf(N).length(); j++) {
-                // i와 j 위치 바꾸기
-                StringBuilder sb = new StringBuilder(String.valueOf(num));
-                sb.setCharAt(i, String.valueOf(num).charAt(j));
-                sb.setCharAt(j, String.valueOf(num).charAt(i));
+                int nextNum = num;
+                nextNum -= pi * ri + pj * rj;
+                nextNum += pi * rj + pj * ri;
 
-                dfs(Integer.parseInt(sb.toString()), cnt+1);
+                if (nextNum == 0 || (i == 0 && rj == 0)) continue;
+                if (visit[nextNum][cnt + 1]) continue;
+
+                visit[nextNum][cnt + 1] = true;
+                dfs(nextNum, cnt + 1);
             }
         }
     }
 
-    public static void print() throws IOException {
+    public static void output() throws IOException {
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
 
         bw.write(result+"");
@@ -48,15 +52,15 @@ class B1039 {
         bw.close();
     }
 
-    public static void init() throws IOException {
+    public static void input() throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
         StringTokenizer st = new StringTokenizer(br.readLine());
         N = Integer.parseInt(st.nextToken());
+        M = String.valueOf(N).length();
         K = Integer.parseInt(st.nextToken());
-        result = -1;
-
         visit = new boolean[1000001][K+1];
+        result = -1;
 
         br.close();
     }
