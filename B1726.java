@@ -2,87 +2,75 @@ import java.util.*;
 import java.io.*;
 
 class B1726 {
-    static int N;
-    static int M;
+    static int N, M;
     static int[][] arr;
-    static int sx, sy, sd;
+    static int sx, sy, sd; // 0123동서남북
     static int ex, ey, ed;
+    static int[] dx = {0, 0, 1, -1};
+    static int[] dy = {1, -1, 0, 0};
     static int result;
 
-    public static void main(String[] args) throws IOException {
+    public static void main (String[] args) throws IOException {
         input();
         solution();
-        print();
+        output();
     }
 
     public static void solution() {
-        Queue<Tuple> queue = new LinkedList<>();
-        queue.add(new Tuple(sx, sy, sd, 0));
+        Queue<int[]> queue = new ArrayDeque<>();
+        Integer[][][] visit = new Integer[N][M][4];
 
-        boolean[][][] visit = new boolean[N][M][5];
+        queue.add(new int[]{sx, sy, sd, 0});
+        visit[sx][sy][sd] = 0;
 
         while (!queue.isEmpty()) {
-            Tuple t = queue.poll();
-            int x = t.x;
-            int y = t.y;
-            int d = t.d;
-            int cnt = t.cnt;
-
-            if (visit[x][y][d]) continue;
-            else visit[x][y][d] = true;
+            int[] q = queue.poll();
+            int x = q[0];
+            int y = q[1];
+            int d = q[2];
+            int cnt = q[3];
 
             if (x == ex && y == ey && d == ed) {
-                result = cnt;
-                break;
+                result = Math.min(result, cnt);
+                continue;
             }
 
-            // 회전
-            turn(x, y, d, cnt+1, queue);
+            // Go
+            for (int i = 1; i <= 3; i++) {
+                int nx = x + dx[d] * i;
+                int ny = y + dy[d] * i;
 
-            // 직진
-            straight(x, y, d, cnt+1, queue);
+                if (!checkRange(nx, ny)) break;
+                if (visit[nx][ny][d] != null && visit[nx][ny][d] <= cnt + 1) continue;
+
+                visit[nx][ny][d] = cnt + 1;
+                queue.add(new int[]{nx, ny, d, cnt + 1});
+            }
+
+            // Turn
+            if (d == 0 || d == 1) {
+                for (int i = 2; i <= 3; i++) {
+                    if (visit[x][y][i] != null && visit[x][y][i] <= cnt + 1) continue;
+                    visit[x][y][i] = cnt + 1;
+                    queue.add(new int[]{x, y, i, cnt + 1});
+                }
+            }
+            else {
+                for (int i = 0; i <= 1; i++) {
+                    if (visit[x][y][i] != null && visit[x][y][i] <= cnt + 1) continue;
+                    visit[x][y][i] = cnt + 1;
+                    queue.add(new int[]{x, y, i, cnt + 1});
+                }
+            }
         }
     }
 
-    public static void turn(int x, int y, int d, int cnt, Queue<Tuple> queue) {
-        if (d == 1 || d == 2) {
-            queue.add(new Tuple(x, y, 3, cnt));
-            queue.add(new Tuple(x, y, 4, cnt));
-        }
-        else {
-            queue.add(new Tuple(x, y, 1, cnt));
-            queue.add(new Tuple(x, y, 2, cnt));
-        }
+    public static boolean checkRange(int x, int y) {
+        if (x < 0 || y < 0 || x >= N || y >= M || arr[x][y] == 1) return false;
+        return true;
     }
 
-    public static void straight(int x, int y, int d, int cnt, Queue<Tuple> queue) {
-        int[] dx = new int[]{0, 0, 0, 1, -1};
-        int[] dy = new int[]{0, 1, -1, 0, 0};
-
-        for (int i = 1; i <= 3; i++) {
-            int tmpX = x + dx[d] * i;
-            int tmpY = y + dy[d] * i;
-
-            if (tmpX < 0 || tmpY < 0 || tmpX >= N || tmpY >= M || arr[tmpX][tmpY] == 1) break;
-            queue.add(new Tuple(tmpX, tmpY, d, cnt));
-        }
-    }
-
-    public static class Tuple{
-        int x;
-        int y;
-        int d;
-        int cnt;
-
-        public Tuple(int x, int y, int d, int cnt) {
-            this.x = x;
-            this.y = y;
-            this.d = d;
-            this.cnt = cnt;
-        }
-    }
-
-    public static void print() throws IOException {
+    public static void output() throws IOException {
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
 
         bw.write(result+"");
@@ -98,6 +86,7 @@ class B1726 {
         N = Integer.parseInt(st.nextToken());
         M = Integer.parseInt(st.nextToken());
         arr = new int[N][M];
+        result = Integer.MAX_VALUE;
 
         for (int i = 0; i < N; i++) {
             st = new StringTokenizer(br.readLine());
@@ -109,12 +98,12 @@ class B1726 {
         st = new StringTokenizer(br.readLine());
         sx = Integer.parseInt(st.nextToken()) - 1;
         sy = Integer.parseInt(st.nextToken()) - 1;
-        sd = Integer.parseInt(st.nextToken());
+        sd = Integer.parseInt(st.nextToken()) - 1;
 
         st = new StringTokenizer(br.readLine());
         ex = Integer.parseInt(st.nextToken()) - 1;
         ey = Integer.parseInt(st.nextToken()) - 1;
-        ed = Integer.parseInt(st.nextToken());
+        ed = Integer.parseInt(st.nextToken()) - 1;
 
         br.close();
     }
