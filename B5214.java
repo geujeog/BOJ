@@ -1,80 +1,100 @@
 import java.util.*;
 import java.io.*;
 
-public class B5214 {
+class B5414 {
+    static int N, M;
+    static List<Integer>[] list;
+    static int result;
+
     public static void main (String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
+        input();
+        solution();
+        output();
+    }
 
-        StringTokenizer st = new StringTokenizer(br.readLine());
-        int N = Integer.parseInt(st.nextToken());
-        int K = Integer.parseInt(st.nextToken());
-        int M = Integer.parseInt(st.nextToken());
-
-        List<Integer>[] list = new ArrayList[N+M+1];
-        for (int i = 1; i <= N+M; i++) {
-            list[i] = new ArrayList<>();
+    public static void solution() {
+        if (N == 1) {
+            result = 1;
+            return;
         }
 
-        for (int m = 1; m <= M; m++) {
-            st = new StringTokenizer(br.readLine());
+        PriorityQueue<Tuple> queue = new PriorityQueue<>();
+        boolean[] visit = new boolean[N + M + 1];
 
-            int hyper = N+m;
+        queue.add(new Tuple(1, 1));
+        visit[1] = true;
 
-            for (int k = 0; k < K; k++) {
-                int v = Integer.parseInt(st.nextToken());
+        while (!queue.isEmpty() && result == -1) {
+            Tuple q = queue.poll();
+            int v = q.v;
+            int cnt = q.cnt;
 
-                list[v].add(hyper);
-                list[hyper].add(v);
+            for (Integer i : list[v]) {
+                if (!visit[i]) {
+                    int p = (i <= N) ? 1 : 0;
+
+                    if (i == N) {
+                        result = cnt + p;
+                        break;
+                    }
+
+                    visit[i] = true;
+                    queue.add(new Tuple(i, cnt + p));
+                }
             }
         }
+    }
 
-        bw.write(bfs(list, N)+"");
+    public static class Tuple implements Comparable<Tuple>{
+        int v;
+        int cnt;
 
-        br.close();
+        public Tuple(int v, int cnt) {
+            this.v = v;
+            this.cnt = cnt;
+        }
+
+        @Override
+        public int compareTo(Tuple t) {
+            return this.cnt - t.cnt;
+        }
+    }
+
+    public static void output() throws IOException {
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
+
+        bw.write(result+"");
+
         bw.flush();
         bw.close();
     }
 
-    public static int bfs (List<Integer>[] list, int N) {
-        int result = -1;
+    public static void input() throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-        boolean[] check = new boolean[list.length];
-        check[1] = true;
+        StringTokenizer st = new StringTokenizer(br.readLine());
+        N = Integer.parseInt(st.nextToken()); // 1 ~ N+M
+        int K = Integer.parseInt(st.nextToken());
+        M = Integer.parseInt(st.nextToken());
+        result = -1;
 
-        Queue<Tuple> queue = new LinkedList<>();
-        queue.add(new Tuple(1, 1));
+        list = new ArrayList[N + M + 1];
+        for (int i = 1; i <= N + M; i++) {
+            list[i] = new ArrayList<>();
+        }
 
-        while (!queue.isEmpty()) {
-            Tuple tuple = queue.poll();
-            int idx = tuple.idx;
-            int move = tuple.move;
+        for (int i = 1; i <= M; i++) {
+            int idx = N + i;
 
-            if (idx == N) {
-                result = move;
-                break;
-            }
+            st = new StringTokenizer(br.readLine());
+            for (int k = 0; k < K; k++) {
+                int station = Integer.parseInt(st.nextToken());
 
-            for (int i : list[idx]) {
-                if (!check[i]) {
-                    check[i] = true;
-
-                    if (i > N) queue.add(new Tuple(i, move));
-                    else queue.add(new Tuple(i, move+1));
-                }
+                list[station].add(idx);
+                list[idx].add(station);
             }
         }
 
-        return result;
-    }
-
-    public static class Tuple {
-        int idx;
-        int move;
-
-        public Tuple (int idx, int move) {
-            this.idx = idx;
-            this.move = move;
-        }
+        br.close();
     }
 }
