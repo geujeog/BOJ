@@ -5,7 +5,8 @@ class B11967 {
     static int N;
     static List<int[]>[][] light;
     static boolean[][] on;
-    static boolean[][] canGo;
+    static boolean[][] visited;
+    static boolean[][] stop;
     static int[] dx = {-1, 0, 1, 0};
     static int[] dy = {0, -1, 0, 1};
     static int result;
@@ -22,8 +23,9 @@ class B11967 {
 
         Queue<int[]> queue = new ArrayDeque<>();
 
+        result = 1;
         on[1][1] = true;
-        canGo[1][1] = true;
+        visited[1][1] = true;
         queue.add(new int[]{1, 1});
 
         while (!queue.isEmpty()) {
@@ -31,53 +33,34 @@ class B11967 {
             int x = q[0];
             int y = q[1];
 
-            turnON(x, y);
-            queue.addAll(bfs(x, y));
-        }
+            // turn on
+            for (int[] l : light[x][y]) {
+                if (!on[l[0]][l[1]]) {
+                    on[l[0]][l[1]] = true;
+                    result++;
 
-        for (int i = 1; i <= N; i++) {
-            for (int j = 1; j <= N; j++) {
-                if (on[i][j]) result++;
+                    if (stop[l[0]][l[1]]) {
+                        queue.add(new int[]{l[0], l[1]});
+                    }
+                }
             }
-        }
-    }
 
-    public static Queue bfs(int i, int j) {
-        Queue<int[]> open = new ArrayDeque<>();
-        Queue<int[]> queue = new ArrayDeque<>();
-        boolean[][] visit = new boolean[N+1][N+1];
-
-        visit[i][j] = true;
-        queue.add(new int[]{i, j});
-
-        while (!queue.isEmpty()) {
-            int[] q = queue.poll();
-            int x = q[0];
-            int y = q[1];
-
+            //
             for (int d = 0; d < dx.length; d++) {
                 int nx = x + dx[d];
                 int ny = y + dy[d];
 
                 if (nx == 0 || ny == 0 || nx > N || ny > N) continue;
-                if (visit[nx][ny] || !on[nx][ny]) continue;
+                if (visited[nx][ny]) continue;
 
-                visit[nx][ny] = true;
-                queue.add(new int[]{nx, ny});
-
-                if (!canGo[nx][ny]) {
-                    canGo[nx][ny] = true;
-                    open.add(new int[]{nx, ny});
+                if (on[nx][ny]) {
+                    visited[nx][ny] = true;
+                    queue.add(new int[]{nx, ny});
+                }
+                else {
+                    stop[nx][ny] = true;
                 }
             }
-        }
-
-        return open;
-    }
-
-    public static void turnON(int x, int y) {
-        for (int[] l : light[x][y]) {
-            on[l[0]][l[1]] = true;
         }
     }
 
@@ -98,7 +81,8 @@ class B11967 {
         int M = Integer.parseInt(st.nextToken());
         light = new List[N+1][N+1];
         on = new boolean[N+1][N+1];
-        canGo = new boolean[N+1][N+1];
+        visited = new boolean[N+1][N+1];
+        stop = new boolean[N+1][N+1];
 
         for (int i = 1; i <= N; i++) {
             for (int j = 1; j <= N; j++) {
