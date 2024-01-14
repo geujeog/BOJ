@@ -2,117 +2,119 @@ import java.util.*;
 import java.io.*;
 
 class B11967 {
-    public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
+    static int N;
+    static List<int[]>[][] light;
+    static boolean[][] on;
+    static boolean[][] canGo;
+    static int[] dx = {-1, 0, 1, 0};
+    static int[] dy = {0, -1, 0, 1};
+    static int result;
 
-        StringTokenizer st = new StringTokenizer(br.readLine());
-        int N = Integer.parseInt(st.nextToken());
-        int M = Integer.parseInt(st.nextToken());
+    public static void main (String[] args) throws IOException {
+        input();
+        solution();
+        output();
+    }
 
-        List<String> lines = new ArrayList<>();
-        Map<String, List<Tuple>> map = new TreeMap<>();
-        for (int i = 0; i < M; i++) {
-            lines.add(br.readLine());
+    public static void solution() {
+        // 현재 위치에서 스위치 on
+        // 불 켜진 곳에서 bfs를 통해 현재 위치까지 도달할 수 있으면 큐에 넣기
+
+        Queue<int[]> queue = new ArrayDeque<>();
+
+        on[1][1] = true;
+        canGo[1][1] = true;
+        queue.add(new int[]{1, 1});
+
+        while (!queue.isEmpty()) {
+            int[] q = queue.poll();
+            int x = q[0];
+            int y = q[1];
+
+            turnON(x, y);
+            queue.addAll(bfs(x, y));
         }
-        Collections.sort(lines);
 
-        for (String line : lines) {
-            int fromX = Integer.parseInt(line.split(" ")[0]);
-            int fromY = Integer.parseInt(line.split(" ")[1]);
-            int toX = Integer.parseInt(line.split(" ")[2]);
-            int toY = Integer.parseInt(line.split(" ")[3]);
-
-            String key = fromX +" "+ fromY;
-            if (map.containsKey(key)) {
-                List<Tuple> tmp = new ArrayList<>();
-                tmp.addAll(map.get(key));
-                tmp.add(new Tuple(toX, toY));
-                map.put(key, tmp);
-            }
-            else map.put(key, Arrays.asList(new Tuple(toX, toY)));
-        }
-
-        boolean[][] light = new boolean[N+1][N+1];
-        boolean[][] moveHistory = new boolean[N+1][N+1];
-
-        // default
-        light[1][1] = true;
-
-        bfs(light, moveHistory, map);
-
-        int result = 0;
         for (int i = 1; i <= N; i++) {
             for (int j = 1; j <= N; j++) {
-                if (light[i][j]) result++;
+                if (on[i][j]) result++;
             }
         }
+    }
+
+    public static Queue bfs(int i, int j) {
+        Queue<int[]> open = new ArrayDeque<>();
+        Queue<int[]> queue = new ArrayDeque<>();
+        boolean[][] visit = new boolean[N+1][N+1];
+
+        visit[i][j] = true;
+        queue.add(new int[]{i, j});
+
+        while (!queue.isEmpty()) {
+            int[] q = queue.poll();
+            int x = q[0];
+            int y = q[1];
+
+            for (int d = 0; d < dx.length; d++) {
+                int nx = x + dx[d];
+                int ny = y + dy[d];
+
+                if (nx == 0 || ny == 0 || nx > N || ny > N) continue;
+                if (visit[nx][ny] || !on[nx][ny]) continue;
+
+                visit[nx][ny] = true;
+                queue.add(new int[]{nx, ny});
+
+                if (!canGo[nx][ny]) {
+                    canGo[nx][ny] = true;
+                    open.add(new int[]{nx, ny});
+                }
+            }
+        }
+
+        return open;
+    }
+
+    public static void turnON(int x, int y) {
+        for (int[] l : light[x][y]) {
+            on[l[0]][l[1]] = true;
+        }
+    }
+
+    public static void output() throws IOException {
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
 
         bw.write(result+"");
 
-        br.close();
         bw.flush();
         bw.close();
     }
 
-    public static void bfs(boolean[][] light, boolean[][] moveHistory, Map<String, List<Tuple>> map) {
-        Queue<Tuple> fresh = new LinkedList<>();
-        Queue<Tuple> queue = new LinkedList<>();
-        queue.add(new Tuple(1, 1));
+    public static void input() throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-        while (!queue.isEmpty() || !fresh.isEmpty()) {
-            while (queue.isEmpty()) {
-                Tuple fTuple = fresh.peek();
-                int fTx = fTuple.x;
-                int fTy = fTuple.y;
+        StringTokenizer st = new StringTokenizer(br.readLine());
+        N = Integer.parseInt(st.nextToken());
+        int M = Integer.parseInt(st.nextToken());
+        light = new List[N+1][N+1];
+        on = new boolean[N+1][N+1];
+        canGo = new boolean[N+1][N+1];
 
-                if (fTx > 1 && moveHistory[fTx-1][fTy]) queue.add(fresh.poll());
-                else if (fTx < moveHistory.length-2 && moveHistory[fTx-1][fTy]) queue.add(fresh.poll());
-                else if (fTy > 1 && moveHistory[fTx][fTy-1]) queue.add(fresh.poll());
-                else if (fTy < moveHistory[0].length-2 && moveHistory[fTx][fTy-1]) queue.add(fresh.poll());
-                else fresh.remove();
-
-                if (fresh.size() == 0) break;
+        for (int i = 1; i <= N; i++) {
+            for (int j = 1; j <= N; j++) {
+                light[i][j] = new ArrayList<>();
             }
-            if (queue.size() == 0) break;
-
-            Tuple tuple = queue.poll();
-            int tx = tuple.x;
-            int ty = tuple.y;
-
-            if (tx < 1 || ty < 1 || tx > moveHistory.length-1 || ty > moveHistory[0].length-1) continue;
-            if (!light[tx][ty] || moveHistory[tx][ty]) continue;
-
-            moveHistory[tx][ty] = true;
-
-            String key = tuple.x+" "+tuple.y;
-            if (map.containsKey(key)) {
-                for (Tuple value : map.get(key)) {
-                    int x = value.x;
-                    int y = value.y;
-
-                    // turn on
-                    light[x][y] = true;
-
-                    // input queue
-                    fresh.add(new Tuple(x, y));
-                }
-            }
-
-            queue.add(new Tuple(tx - 1, ty));
-            queue.add(new Tuple(tx + 1, ty));
-            queue.add(new Tuple(tx, ty - 1));
-            queue.add(new Tuple(tx, ty + 1));
         }
-    }
 
-    public static class Tuple {
-        int x;
-        int y;
-
-        public Tuple (int x, int y) {
-            this.x = x;
-            this.y = y;
+        for (int i = 0; i < M; i++) {
+            st = new StringTokenizer(br.readLine());
+            int x = Integer.parseInt(st.nextToken());
+            int y = Integer.parseInt(st.nextToken());
+            int a = Integer.parseInt(st.nextToken());
+            int b = Integer.parseInt(st.nextToken());
+            light[x][y].add(new int[]{a, b});
         }
+
+        br.close();
     }
 }
