@@ -1,7 +1,7 @@
 import java.util.*;
 import java.io.*;
 
-class B5414 {
+class B5214 {
     static int N, M;
     static List<Integer>[] list;
     static int result;
