@@ -1,75 +1,84 @@
 import java.util.*;
 import java.io.*;
 
-public class B2250 {
-    static int cnt = 1;
-    static int depthMax = 0;
+class B2250 {
+    static int N;
+    static int root;
+    static int[][] child;
+    static int[] count; // 너비인덱스
+    static int[][] width;
+    static int maxDepth;
+    static int resultIdx, resultWidth;
 
     public static void main (String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        input();
+        solution();
+        output();
+    }
+
+    public static void solution() {
+        dfs(root, 0, 1);
+
+        for (int i = 1; i <= maxDepth; i++) {
+            int len = width[i][1] - width[i][0] + 1;
+
+            if (resultWidth < len) {
+                resultWidth = len;
+                resultIdx = i;
+            }
+        }
+    }
+
+    public static int dfs(int v, int standard, int depth) {
+        if (v == -1) return standard;
+
+        count[v] = dfs(child[v][0], standard, depth + 1);
+
+        maxDepth = Math.max(depth, maxDepth);
+        width[depth][0] = Math.min(width[depth][0], count[v]);
+        width[depth][1] = Math.max(width[depth][1], count[v]);
+
+        return dfs(child[v][1] , count[v] + 1, depth + 1);
+    }
+
+    public static void output() throws IOException {
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
 
-        int N = Integer.parseInt(br.readLine());
-        int[][] arr = new int[N+1][2];
-        boolean[] isRoot = new boolean[N+1];
+        bw.write(resultIdx+" "+resultWidth);
 
-        for (int i = 0; i < N; i++) {
-            StringTokenizer st = new StringTokenizer(br.readLine());
-
-            int v = Integer.parseInt(st.nextToken());
-            int left = Integer.parseInt(st.nextToken());
-            int right = Integer.parseInt(st.nextToken());
-
-            if (left != -1) {
-                arr[v][0] = left;
-                isRoot[left] = true;
-            }
-
-            if (right != -1) {
-                arr[v][1] = right;
-                isRoot[right] = true;
-            }
-        }
-
-        int rootIdx = 0;
-        for (int i = 1; i <= N; i++) {
-            if (!isRoot[i]) rootIdx = i;
-        }
-
-        int[][] square = new int[N][2];
-        dfs(square, arr, rootIdx, 0);
-
-        int width = 0;
-        int widthLine = 0;
-
-        for (int i = 0; i <= depthMax; i++) {
-            int minus = square[i][1] - square[i][0] + 1;
-
-            if (width < minus) {
-                width = minus;
-                widthLine = i + 1;
-            }
-        }
-
-        bw.write(widthLine+" "+width);
-
-        br.close();
         bw.flush();
         bw.close();
     }
 
-    public static void dfs (int[][] square, int[][] arr, int v, int depth) {
-        if (arr[v][0] != 0) {
-            dfs(square, arr, arr[v][0], depth+1);
+    public static void input() throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+        N = Integer.parseInt(br.readLine());
+        child = new int[N+1][2];
+        count = new int[N+1];
+        width = new int[N+1][2];
+
+        boolean[] isRoot = new boolean[N+1];
+        Arrays.fill(isRoot, true);
+
+        for (int i = 1; i <= N; i++) {
+            StringTokenizer st = new StringTokenizer(br.readLine());
+            int v = Integer.parseInt(st.nextToken());
+            child[v][0] = Integer.parseInt(st.nextToken());
+            child[v][1] = Integer.parseInt(st.nextToken());
+
+            width[i][0] = Integer.MAX_VALUE;
+            if (child[v][0] >= 1) isRoot[child[v][0]] = false;
+            if (child[v][1] >= 1) isRoot[child[v][1]] = false;
         }
 
-        if (square[depth][0] == 0) square[depth][0] = cnt;
-        square[depth][1] = cnt++;
-
-        if (arr[v][1] != 0){
-            dfs(square, arr, arr[v][1], depth+1);
+        for (int i = 1; i <= N; i++) {
+            if (isRoot[i]) {
+                root = i;
+                break;
+            }
         }
 
-        depthMax = Math.max(depthMax, depth);
+        br.close();
     }
 }
