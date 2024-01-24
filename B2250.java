@@ -3,10 +3,11 @@ import java.io.*;
 
 class B2250 {
     static int N;
-    static int root;
     static int[][] child;
-    static int[] count; // 너비인덱스
-    static int[][] width;
+
+    static int[] count; // 인덱스
+    static int[][] width; // 깊이 별 최소, 최대 인덱스
+    static int root;
     static int maxDepth;
     static int resultIdx, resultWidth;
 
@@ -32,13 +33,13 @@ class B2250 {
     public static int dfs(int v, int standard, int depth) {
         if (v == -1) return standard;
 
-        count[v] = dfs(child[v][0], standard, depth + 1);
+        count[v] = dfs(child[v][0], standard, depth + 1); // 왼쪽
 
         maxDepth = Math.max(depth, maxDepth);
         width[depth][0] = Math.min(width[depth][0], count[v]);
         width[depth][1] = Math.max(width[depth][1], count[v]);
 
-        return dfs(child[v][1] , count[v] + 1, depth + 1);
+        return dfs(child[v][1] , count[v] + 1, depth + 1); // 오른쪽
     }
 
     public static void output() throws IOException {
