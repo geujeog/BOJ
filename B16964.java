@@ -19,21 +19,21 @@ class B16964 {
         getParent();
 
         visit[1] = true;
-        if (dfs(1, 1) == N) {
+        if (dfs(1) == N) {
             isPossible = 1;
         }
     }
 
-    public static int dfs(int node, int idx) {
-        if (node != arr[idx]) return -1;
-
+    public static int dfs(int idx) {
+        int node = arr[idx];
         int minus = (node == 1) ? 0 : 1;
+
         for (int i = 0; i < list[node].size() - minus; i++) {
             int nextNode = arr[idx + 1];
 
             if (!visit[nextNode] && parent[nextNode] == node) {
                 visit[nextNode] = true;
-                idx = dfs(nextNode, idx + 1);
+                idx = dfs(idx + 1);
 
                 if (idx == -1) return -1;
             }
@@ -45,6 +45,7 @@ class B16964 {
 
     public static void getParent() {
         Queue<Integer> queue = new ArrayDeque<>();
+
         parent[1] = 1;
         queue.add(1);
 
