@@ -4,15 +4,11 @@ import java.io.*;
 class B16940 {
     static int N;
     static List<Integer>[] list;
-    static int[] order;
-
-    static int[] parent; // 자신의 부모
-    static int[] level; // 자신의 레벨
-    static int[] countingLevel; // 레벨 별 노드 개수
-
-    static int[] countingChild; // 레벨 별 카운팅한 자식 값
-    static int[][] range;
-    static int result;
+    static int[] arr;
+    static int[] depth, sumDepth;
+    static int[] range;
+    static int[] countPerDepth;
+    static int isRight = 1;
 
     public static void main (String[] args) throws IOException {
         input();
@@ -21,32 +17,41 @@ class B16940 {
     }
 
     public static void solution() {
-        range[order[1]][0] = range[order[1]][1] = 1;
+        range[1] = 1;
 
-        for (int i = 1; i <= N; i++) {
-            int v = order[i];
-            int lv = level[v];
+        if (arr[1] != 1 || !judgeBFS(1)) {
+            isRight = 0;
+        }
+    }
 
-            for (Integer child : list[v]) {
-                if (child == parent[v]) continue;
+    public static boolean judgeBFS(int idx) {
+        int v = arr[idx];
+        int dep = depth[v];
+        int nextDep = depth[v] + 1;
 
-                range[child][0] = countingLevel[lv] + countingChild[lv + 1] + 1;
-                range[child][1] = range[child][0] + list[v].size() - 2;
-            }
-
-            countingChild[lv + 1] += list[v].size() - 1;
-
-            if (i < range[v][0] || range[v][1] < i) {
-                result = 0;
-                break;
+        for (Integer i : list[v]) {
+            if (range[i] == 0) {
+                range[i] = sumDepth[dep] + countPerDepth[nextDep];
             }
         }
+
+        countPerDepth[nextDep] += (list[v].size() - ((v == 1) ? 0 : 1));
+
+        if (idx + 1 < N) {
+            int next = arr[idx + 1];
+
+            if (range[next] > 0 && range[next] <= idx) {
+                return judgeBFS(idx + 1);
+            }
+            else return false;
+        }
+        return true;
     }
 
     public static void output() throws IOException {
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
 
-        bw.write(result+"");
+        bw.write(isRight+"");
 
         bw.flush();
         bw.close();
@@ -57,32 +62,27 @@ class B16940 {
 
         N = Integer.parseInt(br.readLine());
         list = new ArrayList[N+1];
-        order = new int[N+1];
+        arr = new int[N+1];
+        depth = new int[N+1];
+        sumDepth = new int[N+1];
+        range = new int[N+1];
+        countPerDepth = new int[N+1];
 
-        parent = new int[N+1];
-        level = new int[N+1];
-        countingChild = new int[N+2];
-        countingLevel = new int[N+1];
-        range = new int[N+1][2];
-        result = 1;
-
-        for (int i = 0; i <= N; i++) {
+        for (int i = 1; i <= N; i++) {
             list[i] = new ArrayList<>();
         }
-        list[1].add(0);
 
-        for (int i = 0; i < N-1; i++) {
+        for (int i = 1; i < N; i++) {
             StringTokenizer st = new StringTokenizer(br.readLine());
             int a = Integer.parseInt(st.nextToken());
             int b = Integer.parseInt(st.nextToken());
-
             list[a].add(b);
             list[b].add(a);
         }
 
         StringTokenizer st = new StringTokenizer(br.readLine());
         for (int i = 1; i <= N; i++) {
-            order[i] = Integer.parseInt(st.nextToken());
+            arr[i] = Integer.parseInt(st.nextToken());
         }
 
         bfs();
@@ -93,27 +93,26 @@ class B16940 {
     public static void bfs() {
         Queue<Integer> queue = new ArrayDeque<>();
 
-        queue.add(order[1]);
-        level[order[1]] = 1;
-        countingLevel[1] = 1;
+        int maxDepth = 1;
+        depth[1] = 1;
+        sumDepth[1] = 1;
+        queue.add(1);
 
         while (!queue.isEmpty()) {
             int v = queue.poll();
 
             for (Integer i : list[v]) {
-                if (i == 0) continue;
-
-                if (level[i] == 0) {
-                    parent[i] = v;
-                    level[i] = level[v] + 1;
-                    countingLevel[level[i]]++;
+                if (depth[i] == 0) {
+                    depth[i] = depth[v] + 1;
+                    sumDepth[depth[i]]++;
+                    maxDepth = Math.max(maxDepth, depth[i]);
                     queue.add(i);
                 }
             }
         }
 
-        for (int i = 1; i <= N; i++) {
-            countingLevel[i] += countingLevel[i-1];
+        for (int i = 2; i <= maxDepth; i++) {
+            sumDepth[i] += sumDepth[i-1];
         }
     }
 }
